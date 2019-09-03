@@ -1,6 +1,5 @@
-module Rest (arvVazia,  ehVazia, ehNoNulo, arvEsq, arvDir, infoNo, 
+module ArvRest (arvVazia,  ehVazia, ehNoNulo, arvEsq, arvDir, infoNo, 
                 insereNo, consultaNo, removeNo ) where 
-
 {- Questão 01
 Defina um  tipo  abstrato  de  dados  que  é  uma  árvore  binária  de  busca  
 em  que  o  tipo  exportado  é data  Arv (a,b,c) =  NoNulo  |  No (a,b,c) (Arv (a,b,c)) (Arv (a,b,c))
@@ -70,7 +69,7 @@ consultaNo i arv = (filter (\x -> i == (fElem x)) (emOrdem arv)) !! 0
 removeNo :: Int -> Arv Tuple ->[Tuple]
 removeNo i arv = (filter (\x -> i /= (fElem x)) (emOrdem arv))
 
-
+---------------------------------------- Fim do módulo ArvRest----------------------------------------
 {- Questão 2 
             Informações importantes
 
@@ -92,6 +91,10 @@ para manipular o cardápio do restaurante armazenado no sistema.
 -}
 
 --(a) Coleta um item no menu, informando seu código.
+-- menu exemplo
+menu :: Arv Tuple
+menu = (No (122,"Frango", 3200)
+            (No (101, "Picanha",4000) NoNulo NoNulo) NoNulo)
 type Menu = Arv Tuple
 type Nome = String
 type ItemRest = Tuple
@@ -112,7 +115,8 @@ coletaItemMenu2 m s = consultaNomeNo s m
 (c) Atualizar os preços do cardápio de um valor percentual informado. Observe que como o preço é  
 sinônimo  de Int,  tudo  deve  ser  expresso  usando  o  tipo Int. Assim,  se  um  item  custa  
 1000  e você  deseja  acrescer  de  um  valor  percentual  de  10%, você  deve  informar  10  e  
-sua  atualização calculará  o novo valor como o valor antigo acrescido de  div (10*1000) 100.-}
+sua  atualização calculará  o novo valor como o valor antigo acrescido de  div (10*1000) 100.
+-}
 
 --Estratégia 
 --(1) Percorrer árvore (Menu) em ordem. 
@@ -130,11 +134,13 @@ atualizaPrecosMenu :: Menu -> Int-> [Menu]
 atualizaPrecosMenu m p = criarMenu(upPricesMenu(pEmOrdem m) p)
 
 
-{-(d) Atualizar  os  preços  de  uma  categoria  do  cardápio  de  um  valor  percentual  informado.
+{-
+(d) Atualizar  os  preços  de  uma  categoria  do  cardápio  de  um  valor  percentual  informado.
 Para resolver esta questão você pode precisar de uma função auxiliar, que dado a categoria lhe devolva 
 o maior e menor código desta categoria. Observe que a faixa de códigos e as possíveis categorias
 são fixas e  não serão atualizadas pelo sistema.Para realizar a questão defina o tipo Categoria 
-como um tipo algébrico em que os itens da categoria são os construtores deste tipo.-}
+como um tipo algébrico em que os itens da categoria são os construtores deste tipo.
+-}
 
 type Categoria = String -- nome da categoria
 type TabCategoria = [(String, (Int, Int))] -- tabela itens/faixa de códigos
@@ -167,7 +173,8 @@ insereItemMenu menu (x:xs)
     | otherwise = insereNo x (insereItemMenu menu xs)
 
 --(f) Remove um conjunto de itens do menu.Sua função só deve remover se o item existir no menu.
---removeItemMenu :: Menu -> [Tuple] -> Menu
+removeItemMenu :: Menu -> [Tuple] -> Menu
+removeItemMenu menu xs =      (emOrdem menu)
 
 
 
@@ -182,15 +189,61 @@ totalMenu menu  = length (emOrdem menu)
 
 --(i) Listar quantos itens existem no menu, por categoria.
 --type NomeCat = String
-listItensCat :: Menu -> Categoria -> [Tuple]
-listItensCat menu cat = 
+--totalCat :: Menu -> [(Categoria, Int)]
+totalCat menu = (emOrdem menu)
+
 
 {-
-totalCat:: Menu->[(NomeCat,Int)]
-(j)Coletar onome do item mais barato e o mais caro, por categoria.
+(j)Coletar o nome do item mais barato e o mais caro, por categoria.
 itemCaroBarat :: Menu->Categoria -> [(NomeCat,(Nome,Nome))]
 -}
 
-menu :: Arv Tuple
-menu = (No (122,"Frango", 3200)
-            (No (101, "Picanha",4000) NoNulo NoNulo) NoNulo)
+{- Questão 3
+Mantenha  as  funções  que  já  implementou  para  gerir  os  pedidos  dos  clientes  no  restaurante.
+Mas reescreva esta função considerando um tipo algébrico para expressar os dias da semana.
+(a) Escreva  uma  função  para  dar  desconto  de  um  dado  percentual,  de  acordo  com  o  
+dia  da semana,  nos  itens  dos  pedidos  do  cliente  daquele  dia:  
+segunda - bebidas;  terça – peixes  e mariscos;  quarta – tira-gostos;  quinta – carnes  e  aves;  
+sexta - massas;  sábado  e  domingo – acompanhamentos extras  e  sobremesas. 
+Esta   função   deve   ser   aplicada   após   a   função pedidoCompletoMesa quando  houver  eventos
+promocionais,  antes  da  geração  da  conta para o cliente. 
+-}
+type DiaSemana = Semana
+type PedidoCliente = [Tuple] 
+type VlrDesconto = Int
+data Semana = Dom | Seg | Ter | Qua | Qui | Sex | Sab
+                    deriving (Eq, Ord)
+type Limites = (Codigo, Codigo)
+
+--O desconto é aplicado na conta ou no Menu?
+--Função auxiliar 
+--takeLimite :: String -> [(String, (Int, Int))]
+--takeLimite str xs = [(b,c) | (a, (b,c)) <- categoriaMenu, a == str]
+
+pddFinal :: PedidoCliente -> [Tuple] -> [Tuple]
+pddFinal (x:xs) (y:ys) = if fElem x == fElem y then x : pddFinal xs ys else pddFinal xs ys 
+
+categoriaMenu2= [
+                    ("Bebidas", (1, 50)), ("Tira-gostos",(51, 100)), ("Carnes", (101, 120))
+                    ,("Aves", (121, 140)), ("Peixes e Mariscos", (141, 160)), ("Massas", (161, 180))
+                    ,("Acompanhamentos extras", (181, 200)), ("Sobremesas", (201, 220))
+                ]
+--Função auxiliar  
+diaDesconto :: Semana -> Limites
+diaDesconto dia
+    | dia == Dom = (181, 220)
+    | dia == Seg = (1, 50)
+    | dia == Ter = (141, 160)
+    | dia == Qua = (51, 100)
+    | dia == Qui = (101, 140)
+    | dia == Sex = (161, 180)
+    | dia == Sab = (181, 220)
+    | otherwise = error "Dia informado errado..."
+
+
+desconto :: PedidoCliente -> Menu -> DiaSemana -> VlrDesconto -> PedidoCliente
+desconto pdd menu dia vlr = pddFinal (upPricesMenu (verifCateg (diaDesconto dia) menu) vlr) pdd
+
+
+
+
